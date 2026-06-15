@@ -5,13 +5,18 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      // App-wide design tokens only (true OTT palette). Component-specific
+      // colors are hardcoded as arbitrary values per project conventions.
       colors: {
-        // Bingebox brand palette
-        brand: {
-          DEFAULT: '#208AEF',
-          dark: '#1565C0',
-          light: '#E6F4FE',
+        background: '#0F0F0F',
+        surface: '#121212',
+        elevated: '#1A1A1A',
+        primary: {
+          DEFAULT: '#E50914', // deep red — primary CTAs (Play)
+          dark: '#B00710',
         },
+        accent: '#F5C518', // amber/gold — ratings & highlights
+        muted: '#9CA3AF', // secondary text
       },
     },
   },

@@ -6,7 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bingebox",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0F0F0F",
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -28,7 +29,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0F0F0F",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76

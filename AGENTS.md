@@ -18,14 +18,23 @@
 | Animations | React Native Reanimated + React Native Gesture Handler |
 | Linting | ESLint with `eslint-config-expo` |
 
-> **Installed today:** `expo`, `expo-router`, `nativewind` + `tailwindcss`,
+> **Installed:** `expo`, `expo-router`, `nativewind` + `tailwindcss`,
 > `react-native-reanimated`, `react-native-gesture-handler`, `expo-image`,
-> `expo-font`, `expo-splash-screen`, `expo-symbols`, plus the SDK 56 core.
->
-> **Not yet installed — add (with npm) only when the feature that needs them is
-> being built:** `zustand`, `@tanstack/react-query`,
-> `@lukemorales/query-key-factory`, `clsx` + `tailwind-merge` (the `cn` utility).
-> When you add one, follow the patterns below.
+> `expo-linear-gradient`, `expo-font`, `expo-splash-screen`, `expo-symbols`,
+> `@expo/vector-icons`, `react-native-webview`, `zustand`,
+> `@tanstack/react-query`, `@lukemorales/query-key-factory`, `clsx` +
+> `tailwind-merge` (the `cn` utility), `@react-native-async-storage/async-storage`,
+> plus the SDK 56 core.
+
+## Data Source
+
+- **TMDB** (themoviedb.org) powers all discovery data (trending, popular, top
+  rated, upcoming, search, details, cast, similar). Requires a free v4 read
+  access token in `.env` as `EXPO_PUBLIC_TMDB_ACCESS_TOKEN` (see `.env.example`).
+- **Vidking** (`vidking.net/embed/movie/{tmdbId}`) is playback only — an
+  embeddable player loaded in a WebView. It has no metadata/search API.
+- The HTTP client lives in `src/api/client.ts`; pure endpoint functions in
+  `src/api/movies.ts`; response types narrowed in `src/api/types.ts`.
 
 ## Project Structure
 

@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Movie } from '@/api/types';
+import type { MediaType } from '@/api/types';
 
 export interface WatchlistItem {
   id: number;
+  media_type: MediaType;
   title: string;
   poster_path: string | null;
   backdrop_path: string | null;
@@ -15,32 +16,21 @@ export interface WatchlistItem {
 
 interface WatchlistState {
   items: WatchlistItem[];
-  toggle: (movie: Movie) => void;
+  toggle: (item: WatchlistItem) => void;
   remove: (id: number) => void;
   clear: () => void;
-}
-
-function toItem(movie: Movie): WatchlistItem {
-  return {
-    id: movie.id,
-    title: movie.title,
-    poster_path: movie.poster_path,
-    backdrop_path: movie.backdrop_path,
-    vote_average: movie.vote_average,
-    release_date: movie.release_date,
-  };
 }
 
 export const useWatchlistStore = create<WatchlistState>()(
   persist(
     (set, get) => ({
       items: [],
-      toggle: (movie) => {
-        const exists = get().items.some((item) => item.id === movie.id);
+      toggle: (item) => {
+        const exists = get().items.some((existing) => existing.id === item.id);
         set({
           items: exists
-            ? get().items.filter((item) => item.id !== movie.id)
-            : [toItem(movie), ...get().items],
+            ? get().items.filter((existing) => existing.id !== item.id)
+            : [item, ...get().items],
         });
       },
       remove: (id) => set({ items: get().items.filter((item) => item.id !== id) }),

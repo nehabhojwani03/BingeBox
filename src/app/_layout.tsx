@@ -35,6 +35,7 @@ export default function RootLayout() {
               }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="movie/[id]" />
+              <Stack.Screen name="tv/[id]" />
               <Stack.Screen
                 name="player/[id]"
                 options={{ presentation: 'modal', animation: 'fade' }}

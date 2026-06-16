@@ -18,9 +18,18 @@ export function ContinueWatchingCard({ item, width, onRemove }: ContinueWatching
   const uri = backdropUrl(item.backdrop_path, 'w780') ?? posterUrl(item.poster_path);
   const progressPercent = `${Math.min(100, Math.round(item.progress * 100))}%` as DimensionValue;
 
+  const isTv = item.media_type === 'tv';
+  const subtitle = isTv ? `S${item.season ?? 1}:E${item.episode ?? 1}` : null;
+
   return (
     <Pressable
-      onPress={() => router.push(`/player/${item.id}`)}
+      onPress={() =>
+        router.push(
+          isTv
+            ? `/player/${item.id}?type=tv&season=${item.season ?? 1}&episode=${item.episode ?? 1}`
+            : `/player/${item.id}`,
+        )
+      }
       className="active:opacity-80"
       style={{ width }}>
       <View
@@ -34,14 +43,12 @@ export function ContinueWatchingCard({ item, width, onRemove }: ContinueWatching
           </View>
         )}
 
-        {/* Play affordance */}
         <View className="absolute inset-0 items-center justify-center">
           <View className="h-11 w-11 items-center justify-center rounded-full bg-black/55">
             <Ionicons name="play" size={22} color="#FFFFFF" />
           </View>
         </View>
 
-        {/* Remove */}
         <Pressable
           onPress={onRemove}
           hitSlop={8}
@@ -49,7 +56,6 @@ export function ContinueWatchingCard({ item, width, onRemove }: ContinueWatching
           <Ionicons name="close" size={15} color="#FFFFFF" />
         </Pressable>
 
-        {/* Progress bar */}
         <View className="absolute inset-x-0 bottom-0 h-1 bg-white/25">
           <View className="h-full bg-primary" style={{ width: progressPercent }} />
         </View>
@@ -58,6 +64,7 @@ export function ContinueWatchingCard({ item, width, onRemove }: ContinueWatching
       <Text numberOfLines={1} className="mt-2 text-sm font-semibold text-white">
         {item.title}
       </Text>
+      {subtitle ? <Text className="text-xs text-muted">{subtitle}</Text> : null}
     </Pressable>
   );
 }

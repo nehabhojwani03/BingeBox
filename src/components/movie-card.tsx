@@ -4,21 +4,13 @@ import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { posterUrl } from '@/api/client';
+import type { MediaCardItem } from '@/api/types';
 import { RatingBadge } from '@/components/rating-badge';
 import { Colors } from '@/constants/theme';
-import { cn } from '@/lib/cn';
 import { formatYear } from '@/lib/format';
 
-interface MovieCardLike {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  vote_average: number;
-  release_date: string;
-}
-
 interface MovieCardProps {
-  movie: MovieCardLike;
+  movie: MediaCardItem;
   width: number;
   showMeta?: boolean;
   onRemove?: () => void;
@@ -30,7 +22,9 @@ export function MovieCard({ movie, width, showMeta = false, onRemove }: MovieCar
 
   return (
     <Pressable
-      onPress={() => router.push(`/movie/${movie.id}`)}
+      onPress={() =>
+        router.push(movie.media_type === 'tv' ? `/tv/${movie.id}` : `/movie/${movie.id}`)
+      }
       className="active:opacity-80"
       style={{ width }}>
       <View
@@ -69,7 +63,7 @@ export function MovieCard({ movie, width, showMeta = false, onRemove }: MovieCar
           <Text numberOfLines={1} className="text-sm font-semibold text-white">
             {movie.title}
           </Text>
-          <Text className={cn('text-xs text-muted')}>{formatYear(movie.release_date) || '—'}</Text>
+          <Text className="text-xs text-muted">{formatYear(movie.release_date) || '—'}</Text>
         </View>
       )}
     </Pressable>

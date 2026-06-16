@@ -10,11 +10,16 @@ import {
   type WebViewProps,
 } from 'react-native-webview';
 
-import { vidkingEmbedUrl } from '@/api/client';
+import { vidkingEmbedUrl, vidkingTvEmbedUrl } from '@/api/client';
 import { ErrorState } from '@/components/error-state';
 import { Colors } from '@/constants/theme';
 import { useMovieDetail } from '@/hooks/use-movies';
-import { useContinueWatchingStore } from '@/stores/continue-watching-store';
+import { useTvDetail } from '@/hooks/use-tv';
+import {
+  type ContinueWatchingInput,
+  getContinueItem,
+  useContinueWatchingStore,
+} from '@/stores/continue-watching-store';
 
 const ALLOWED_HOSTS = ['vidking.net', 'www.vidking.net'];
 const TIMEUPDATE_SAVE_INTERVAL = 5000;
@@ -57,26 +62,75 @@ function buildPlayerHtml(embedUrl: string): string {
 }
 
 export default function PlayerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const movieId = Number(id);
+  const { id, type, season, episode } = useLocalSearchParams<{
+    id: string;
+    type?: string;
+    season?: string;
+    episode?: string;
+  }>();
+  const mediaId = Number(id);
+  const isTv = type === 'tv';
+  const seasonNumber = Number(season) || 1;
+  const episodeNumber = Number(episode) || 1;
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
-  const { data: movie } = useMovieDetail(movieId);
+  const { data: movie } = useMovieDetail(isTv ? 0 : mediaId);
+  const { data: show } = useTvDetail(isTv ? mediaId : 0);
   const upsert = useContinueWatchingStore((state) => state.upsert);
 
-  const [resumeSeconds] = useState(
-    () => useContinueWatchingStore.getState().items.find((m) => m.id === movieId)?.currentTime ?? 0,
-  );
+  const media: ContinueWatchingInput | null = useMemo(() => {
+    if (isTv && show) {
+      return {
+        id: show.id,
+        media_type: 'tv',
+        title: show.name,
+        poster_path: show.poster_path,
+        backdrop_path: show.backdrop_path,
+        vote_average: show.vote_average,
+        release_date: show.first_air_date,
+        season: seasonNumber,
+        episode: episodeNumber,
+      };
+    }
+    if (!isTv && movie) {
+      return {
+        id: movie.id,
+        media_type: 'movie',
+        title: movie.title,
+        poster_path: movie.poster_path,
+        backdrop_path: movie.backdrop_path,
+        vote_average: movie.vote_average,
+        release_date: movie.release_date,
+      };
+    }
+    return null;
+  }, [isTv, show, movie, seasonNumber, episodeNumber]);
 
-  const movieRef = useRef(movie);
-  movieRef.current = movie;
+  const mediaRef = useRef(media);
+  mediaRef.current = media;
   const lastSavedAt = useRef(0);
 
-  const embedUrl = useMemo(() => vidkingEmbedUrl(movieId, resumeSeconds), [movieId, resumeSeconds]);
+  const [resumeSeconds] = useState(() => {
+    const item = getContinueItem(mediaId);
+    if (!item) return 0;
+    if (isTv) {
+      return item.season === seasonNumber && item.episode === episodeNumber ? item.currentTime : 0;
+    }
+    return item.currentTime;
+  });
+
+  const embedUrl = useMemo(
+    () =>
+      isTv
+        ? vidkingTvEmbedUrl(mediaId, seasonNumber, episodeNumber, resumeSeconds)
+        : vidkingEmbedUrl(mediaId, resumeSeconds),
+    [isTv, mediaId, seasonNumber, episodeNumber, resumeSeconds],
+  );
   const html = useMemo(() => buildPlayerHtml(embedUrl), [embedUrl]);
 
   const handleShouldStartLoad: WebViewProps['onShouldStartLoadWithRequest'] = (request) =>
@@ -85,7 +139,7 @@ export default function PlayerScreen() {
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const payload = JSON.parse(event.nativeEvent.data);
-      if (payload?.type !== 'PLAYER_EVENT' || !movieRef.current) return;
+      if (payload?.type !== 'PLAYER_EVENT' || !mediaRef.current) return;
 
       const data = payload.data ?? {};
       const currentTime = Number(data.currentTime) || 0;
@@ -98,7 +152,7 @@ export default function PlayerScreen() {
         lastSavedAt.current = now;
       }
 
-      upsert(movieRef.current, { currentTime, duration, progress });
+      upsert(mediaRef.current, { currentTime, duration, progress });
     } catch {
       return;
     }

@@ -3,13 +3,13 @@ import { FlatList, View } from 'react-native';
 import { MovieCard } from '@/components/movie-card';
 import { CarouselSkeleton } from '@/components/skeleton';
 import { SectionHeader } from '@/components/section-header';
-import type { Movie } from '@/api/types';
+import type { MediaCardItem } from '@/api/types';
 
 const CARD_WIDTH = 124;
 
 interface MovieCarouselProps {
   title: string;
-  movies: Movie[] | undefined;
+  movies: MediaCardItem[] | undefined;
   isLoading: boolean;
 }
 

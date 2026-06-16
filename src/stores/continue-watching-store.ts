@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Movie } from '@/api/types';
+import type { MediaType } from '@/api/types';
 
 export interface ContinueWatchingItem {
   id: number;
+  media_type: MediaType;
   title: string;
   poster_path: string | null;
   backdrop_path: string | null;
@@ -15,7 +16,22 @@ export interface ContinueWatchingItem {
   duration: number;
   progress: number;
   updatedAt: number;
+  season?: number;
+  episode?: number;
 }
+
+export type ContinueWatchingInput = Pick<
+  ContinueWatchingItem,
+  | 'id'
+  | 'media_type'
+  | 'title'
+  | 'poster_path'
+  | 'backdrop_path'
+  | 'vote_average'
+  | 'release_date'
+  | 'season'
+  | 'episode'
+>;
 
 export interface PlaybackProgress {
   currentTime: number;
@@ -28,7 +44,7 @@ const FINISHED_THRESHOLD = 0.95;
 
 interface ContinueWatchingState {
   items: ContinueWatchingItem[];
-  upsert: (movie: Movie, playback: PlaybackProgress) => void;
+  upsert: (media: ContinueWatchingInput, playback: PlaybackProgress) => void;
   remove: (id: number) => void;
   clear: () => void;
 }
@@ -37,8 +53,8 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
   persist(
     (set, get) => ({
       items: [],
-      upsert: (movie, playback) => {
-        const others = get().items.filter((item) => item.id !== movie.id);
+      upsert: (media, playback) => {
+        const others = get().items.filter((item) => item.id !== media.id);
 
         if (playback.currentTime < MIN_PROGRESS_SECONDS || playback.progress >= FINISHED_THRESHOLD) {
           set({ items: others });
@@ -46,12 +62,7 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
         }
 
         const entry: ContinueWatchingItem = {
-          id: movie.id,
-          title: movie.title,
-          poster_path: movie.poster_path,
-          backdrop_path: movie.backdrop_path,
-          vote_average: movie.vote_average,
-          release_date: movie.release_date,
+          ...media,
           currentTime: playback.currentTime,
           duration: playback.duration,
           progress: playback.progress,
@@ -70,8 +81,6 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
   ),
 );
 
-export function useResumePosition(id: number) {
-  return useContinueWatchingStore(
-    (state) => state.items.find((item) => item.id === id)?.currentTime ?? 0,
-  );
+export function getContinueItem(id: number) {
+  return useContinueWatchingStore.getState().items.find((item) => item.id === id);
 }

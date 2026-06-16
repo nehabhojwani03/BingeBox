@@ -49,10 +49,23 @@ export function profileUrl(path: string | null) {
   return path ? `${IMAGE_BASE_URL}/w185${path}` : null;
 }
 
-export function vidkingEmbedUrl(movieId: number, resumeSeconds = 0) {
+function playerParams(resumeSeconds: number) {
   const params = new URLSearchParams({ autoPlay: 'true', color: 'e50914' });
   if (resumeSeconds > 0) {
     params.set('progress', String(Math.floor(resumeSeconds)));
   }
-  return `https://www.vidking.net/embed/movie/${movieId}?${params.toString()}`;
+  return params.toString();
+}
+
+export function vidkingEmbedUrl(movieId: number, resumeSeconds = 0) {
+  return `https://www.vidking.net/embed/movie/${movieId}?${playerParams(resumeSeconds)}`;
+}
+
+export function vidkingTvEmbedUrl(
+  tvId: number,
+  season: number,
+  episode: number,
+  resumeSeconds = 0,
+) {
+  return `https://www.vidking.net/embed/tv/${tvId}/${season}/${episode}?${playerParams(resumeSeconds)}`;
 }

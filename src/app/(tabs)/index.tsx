@@ -15,6 +15,8 @@ import {
   useTrendingMovies,
   useUpcomingMovies,
 } from '@/hooks/use-movies';
+import { useOnTheAirTv, usePopularTv, useTopRatedTv, useTrendingTv } from '@/hooks/use-tv';
+import { tvToCard } from '@/lib/media';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -22,6 +24,10 @@ export default function HomeScreen() {
   const popular = usePopularMovies();
   const topRated = useTopRatedMovies();
   const upcoming = useUpcomingMovies();
+  const trendingTv = useTrendingTv();
+  const popularTv = usePopularTv();
+  const topRatedTv = useTopRatedTv();
+  const onTheAirTv = useOnTheAirTv();
 
   if (!isTmdbConfigured) {
     return (
@@ -53,29 +59,48 @@ export default function HomeScreen() {
         <View className="pt-6">
           <ContinueWatchingRow />
           <MovieCarousel
-            title="Trending Now"
+            title="Trending Movies"
             movies={trending.data?.results?.slice(1)}
             isLoading={trending.isLoading}
           />
           <MovieCarousel
-            title="Popular"
+            title="Trending Shows"
+            movies={trendingTv.data?.results?.map(tvToCard)}
+            isLoading={trendingTv.isLoading}
+          />
+          <MovieCarousel
+            title="Popular Movies"
             movies={popular.data?.results}
             isLoading={popular.isLoading}
           />
           <MovieCarousel
-            title="Top Rated"
+            title="Popular Shows"
+            movies={popularTv.data?.results?.map(tvToCard)}
+            isLoading={popularTv.isLoading}
+          />
+          <MovieCarousel
+            title="Top Rated Movies"
             movies={topRated.data?.results}
             isLoading={topRated.isLoading}
           />
           <MovieCarousel
-            title="Upcoming"
+            title="Top Rated Shows"
+            movies={topRatedTv.data?.results?.map(tvToCard)}
+            isLoading={topRatedTv.isLoading}
+          />
+          <MovieCarousel
+            title="Upcoming Movies"
             movies={upcoming.data?.results}
             isLoading={upcoming.isLoading}
+          />
+          <MovieCarousel
+            title="On The Air"
+            movies={onTheAirTv.data?.results?.map(tvToCard)}
+            isLoading={onTheAirTv.isLoading}
           />
         </View>
       </ScrollView>
 
-      {/* Floating brand wordmark over the hero */}
       <View
         pointerEvents="none"
         className="absolute inset-x-0 top-0 flex-row items-center gap-2 px-5"

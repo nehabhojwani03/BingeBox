@@ -2,29 +2,44 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { backdropUrl } from '@/api/client';
 import { CastList } from '@/components/cast-list';
+import { EpisodeList } from '@/components/episode-list';
 import { ErrorState } from '@/components/error-state';
 import { GenrePills } from '@/components/genre-pills';
 import { MovieCarousel } from '@/components/movie-carousel';
 import { RatingBadge } from '@/components/rating-badge';
+import { SeasonPicker } from '@/components/season-picker';
 import { Colors, HeroGradient } from '@/constants/theme';
-import { useMovieDetail } from '@/hooks/use-movies';
-import { formatReleaseDate, formatRuntime } from '@/lib/format';
+import { useTvDetail, useTvSeason } from '@/hooks/use-tv';
+import { formatYear } from '@/lib/format';
+import { tvToCard } from '@/lib/media';
+import { getContinueItem } from '@/stores/continue-watching-store';
 import { useIsInWatchlist, useWatchlistStore } from '@/stores/watchlist-store';
 
-export default function MovieDetailScreen() {
+export default function TVDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const movieId = Number(id);
+  const showId = Number(id);
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { data: movie, isLoading, isError, error, refetch } = useMovieDetail(movieId);
-  const inWatchlist = useIsInWatchlist(movieId);
+  const { data: show, isLoading, isError, error, refetch } = useTvDetail(showId);
+  const inWatchlist = useIsInWatchlist(showId);
   const toggleWatchlist = useWatchlistStore((state) => state.toggle);
+
+  const seasons = useMemo(
+    () => (show?.seasons ?? []).filter((season) => season.episode_count > 0),
+    [show],
+  );
+  const firstSeasonNumber = seasons.find((s) => s.season_number >= 1)?.season_number ?? 1;
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+  const activeSeason = selectedSeason ?? firstSeasonNumber;
+
+  const season = useTvSeason(showId, activeSeason);
 
   const BackButton = (
     <Pressable
@@ -44,7 +59,7 @@ export default function MovieDetailScreen() {
     );
   }
 
-  if (isError || !movie) {
+  if (isError || !show) {
     return (
       <View className="flex-1 bg-background">
         {BackButton}
@@ -53,8 +68,14 @@ export default function MovieDetailScreen() {
     );
   }
 
-  const backdrop = backdropUrl(movie.backdrop_path) ?? backdropUrl(movie.poster_path, 'w780');
-  const runtime = formatRuntime(movie.runtime);
+  const backdrop = backdropUrl(show.backdrop_path) ?? backdropUrl(show.poster_path, 'w780');
+
+  function handlePlay() {
+    const resume = getContinueItem(showId);
+    const playSeason = resume?.season ?? activeSeason;
+    const playEpisode = resume?.episode ?? 1;
+    router.push(`/player/${showId}?type=tv&season=${playSeason}&episode=${playEpisode}`);
+  }
 
   return (
     <View className="flex-1 bg-background">
@@ -68,25 +89,25 @@ export default function MovieDetailScreen() {
         </View>
 
         <View className="-mt-20 gap-4 px-5">
-          <Text className="text-3xl font-extrabold text-white">{movie.title}</Text>
+          <Text className="text-3xl font-extrabold text-white">{show.name}</Text>
 
-          {movie.tagline ? (
-            <Text className="-mt-2 text-sm italic text-muted">{movie.tagline}</Text>
+          {show.tagline ? (
+            <Text className="-mt-2 text-sm italic text-muted">{show.tagline}</Text>
           ) : null}
 
           <View className="flex-row flex-wrap items-center gap-3">
-            <RatingBadge voteAverage={movie.vote_average} />
+            <RatingBadge voteAverage={show.vote_average} />
+            <Text className="text-sm font-medium text-muted">{formatYear(show.first_air_date)}</Text>
             <Text className="text-sm font-medium text-muted">
-              {formatReleaseDate(movie.release_date)}
+              • {show.number_of_seasons} {show.number_of_seasons === 1 ? 'Season' : 'Seasons'}
             </Text>
-            {runtime ? <Text className="text-sm font-medium text-muted">• {runtime}</Text> : null}
           </View>
 
-          <GenrePills genres={movie.genres} />
+          <GenrePills genres={show.genres} />
 
           <View className="flex-row gap-3">
             <Pressable
-              onPress={() => router.push(`/player/${movie.id}`)}
+              onPress={handlePlay}
               className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80">
               <Ionicons name="play" size={18} color="#FFFFFF" />
               <Text className="text-base font-bold text-white">Play</Text>
@@ -95,13 +116,13 @@ export default function MovieDetailScreen() {
             <Pressable
               onPress={() =>
                 toggleWatchlist({
-                  id: movie.id,
-                  media_type: 'movie',
-                  title: movie.title,
-                  poster_path: movie.poster_path,
-                  backdrop_path: movie.backdrop_path,
-                  vote_average: movie.vote_average,
-                  release_date: movie.release_date,
+                  id: show.id,
+                  media_type: 'tv',
+                  title: show.name,
+                  poster_path: show.poster_path,
+                  backdrop_path: show.backdrop_path,
+                  vote_average: show.vote_average,
+                  release_date: show.first_air_date,
                 })
               }
               className="flex-row items-center justify-center gap-2 rounded-xl bg-elevated px-5 py-3.5 active:opacity-70">
@@ -116,17 +137,37 @@ export default function MovieDetailScreen() {
             </Pressable>
           </View>
 
-          {movie.overview ? (
+          {show.overview ? (
             <View className="gap-2">
               <Text className="text-lg font-bold text-white">Overview</Text>
-              <Text className="text-sm leading-6 text-muted">{movie.overview}</Text>
+              <Text className="text-sm leading-6 text-muted">{show.overview}</Text>
             </View>
           ) : null}
         </View>
 
+        <View className="mt-7 gap-4">
+          <Text className="px-5 text-lg font-bold text-white">Episodes</Text>
+          <SeasonPicker
+            seasons={seasons}
+            selectedSeason={activeSeason}
+            onSelect={setSelectedSeason}
+          />
+          {season.isLoading ? (
+            <View className="py-10">
+              <ActivityIndicator color={Colors.primary} />
+            </View>
+          ) : (
+            <EpisodeList showId={showId} episodes={season.data?.episodes ?? []} />
+          )}
+        </View>
+
         <View className="mt-7">
-          <CastList cast={movie.credits.cast} />
-          <MovieCarousel title="More Like This" movies={movie.similar.results} isLoading={false} />
+          <CastList cast={show.credits.cast} />
+          <MovieCarousel
+            title="More Like This"
+            movies={show.similar.results.map(tvToCard)}
+            isLoading={false}
+          />
         </View>
       </ScrollView>
     </View>

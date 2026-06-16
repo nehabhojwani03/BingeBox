@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,13 +8,16 @@ import { PosterGrid } from '@/components/poster-grid';
 import { SearchBar } from '@/components/search-bar';
 import { Colors } from '@/constants/theme';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { useSearchMovies } from '@/hooks/use-movies';
+import { useSearchMulti } from '@/hooks/use-search';
+import { multiToCards } from '@/lib/media';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebouncedValue(query, 400);
   const trimmed = debouncedQuery.trim();
-  const { data, isLoading, isError, error, refetch } = useSearchMovies(trimmed);
+  const { data, isLoading, isError, error, refetch } = useSearchMulti(trimmed);
+
+  const results = useMemo(() => multiToCards(data?.results ?? []), [data]);
 
   const header = (
     <View className="pb-4">
@@ -29,7 +32,7 @@ export default function SearchScreen() {
         <EmptyState
           icon="search-outline"
           title="Find something to watch"
-          message="Search thousands of movies by title, franchise, or keyword."
+          message="Search movies and TV shows by title, franchise, or keyword."
         />
       );
     }
@@ -46,13 +49,12 @@ export default function SearchScreen() {
       return <ErrorState message={error?.message} onRetry={() => refetch()} />;
     }
 
-    const results = data?.results ?? [];
     if (results.length === 0) {
       return (
         <EmptyState
           icon="sad-outline"
           title="No results found"
-          message={`We couldn’t find any movies matching “${trimmed}”.`}
+          message={`We couldn’t find anything matching “${trimmed}”.`}
         />
       );
     }
@@ -61,7 +63,6 @@ export default function SearchScreen() {
   }
 
   const body = renderBody();
-  const results = trimmed.length > 0 && !isLoading && !isError ? (data?.results ?? []) : [];
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -71,10 +72,7 @@ export default function SearchScreen() {
           {body}
         </View>
       ) : (
-        <PosterGrid
-          movies={results}
-          ListHeaderComponent={<View className="pt-2">{header}</View>}
-        />
+        <PosterGrid movies={results} ListHeaderComponent={<View className="pt-2">{header}</View>} />
       )}
     </SafeAreaView>
   );

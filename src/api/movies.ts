@@ -10,9 +10,6 @@ export const moviesApi = {
 
   upcoming: () => tmdbGet<Paginated<Movie>>('/movie/upcoming'),
 
-  search: (query: string) =>
-    tmdbGet<Paginated<Movie>>('/search/movie', { query, include_adult: 'false' }),
-
   detail: (id: number) =>
     tmdbGet<MovieDetails>(`/movie/${id}`, { append_to_response: 'credits,similar' }),
 };

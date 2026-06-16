@@ -2,21 +2,14 @@ import { type ReactElement } from 'react';
 import { FlatList, useWindowDimensions } from 'react-native';
 
 import { MovieCard } from '@/components/movie-card';
+import type { MediaCardItem } from '@/api/types';
 
 const COLUMNS = 3;
 const H_PADDING = 16;
 const GAP = 12;
 
-interface PosterGridItem {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  vote_average: number;
-  release_date: string;
-}
-
 interface PosterGridProps {
-  movies: PosterGridItem[];
+  movies: MediaCardItem[];
   onRemove?: (id: number) => void;
   ListHeaderComponent?: ReactElement;
   ListEmptyComponent?: ReactElement;

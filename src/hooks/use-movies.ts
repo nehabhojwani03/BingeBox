@@ -24,11 +24,3 @@ export function useMovieDetail(id: number) {
     enabled: Number.isFinite(id) && id > 0,
   });
 }
-
-export function useSearchMovies(query: string) {
-  const trimmed = query.trim();
-  return useQuery({
-    ...queries.movies.search(trimmed),
-    enabled: trimmed.length > 0,
-  });
-}

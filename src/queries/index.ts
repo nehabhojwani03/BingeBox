@@ -1,5 +1,7 @@
 import { mergeQueryKeys } from '@lukemorales/query-key-factory';
 
 import { movies } from './movies';
+import { search } from './search';
+import { tv } from './tv';
 
-export const queries = mergeQueryKeys(movies);
+export const queries = mergeQueryKeys(movies, search, tv);

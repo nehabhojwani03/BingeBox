@@ -23,8 +23,4 @@ export const movies = createQueryKeys('movies', {
     queryKey: [id],
     queryFn: () => moviesApi.detail(id),
   }),
-  search: (query: string) => ({
-    queryKey: [query],
-    queryFn: () => moviesApi.search(query),
-  }),
 });

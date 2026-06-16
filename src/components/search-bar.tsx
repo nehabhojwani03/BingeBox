@@ -11,7 +11,9 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChangeText, placeholder = 'Search movies' }: SearchBarProps) {
   return (
-    <View className="flex-row items-center gap-2 rounded-2xl bg-elevated px-4 py-3">
+    <View
+      className="flex-row items-center gap-2 rounded-2xl bg-elevated px-4"
+      style={{ height: 48 }}>
       <Ionicons name="search" size={20} color={Colors.textSecondary} />
       <TextInput
         value={value}
@@ -20,8 +22,14 @@ export function SearchBar({ value, onChangeText, placeholder = 'Search movies' }
         placeholderTextColor={Colors.textSecondary}
         autoCorrect={false}
         returnKeyType="search"
-        className="flex-1 text-base text-white"
-        style={{ paddingVertical: 0 }}
+        className="h-full flex-1 text-base text-white"
+        style={{
+          paddingVertical: 0,
+          margin: 0,
+          includeFontPadding: false,
+          textAlignVertical: 'center',
+          lineHeight: 20,
+        }}
       />
       {value.length > 0 && (
         <Pressable onPress={() => onChangeText('')} hitSlop={8} className="active:opacity-60">

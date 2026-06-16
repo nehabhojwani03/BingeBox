@@ -84,3 +84,7 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
 export function getContinueItem(id: number) {
   return useContinueWatchingStore.getState().items.find((item) => item.id === id);
 }
+
+export function useContinueProgress(id: number) {
+  return useContinueWatchingStore((state) => state.items.find((item) => item.id === id));
+}

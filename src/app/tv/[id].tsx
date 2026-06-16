@@ -18,7 +18,7 @@ import { Colors, HeroGradient } from '@/constants/theme';
 import { useTvDetail, useTvSeason } from '@/hooks/use-tv';
 import { formatYear } from '@/lib/format';
 import { tvToCard } from '@/lib/media';
-import { getContinueItem } from '@/stores/continue-watching-store';
+import { getContinueItem, useContinueProgress } from '@/stores/continue-watching-store';
 import { useIsInWatchlist, useWatchlistStore } from '@/stores/watchlist-store';
 
 export default function TVDetailScreen() {
@@ -30,6 +30,7 @@ export default function TVDetailScreen() {
   const { data: show, isLoading, isError, error, refetch } = useTvDetail(showId);
   const inWatchlist = useIsInWatchlist(showId);
   const toggleWatchlist = useWatchlistStore((state) => state.toggle);
+  const continueItem = useContinueProgress(showId);
 
   const seasons = useMemo(
     () => (show?.seasons ?? []).filter((season) => season.episode_count > 0),
@@ -110,7 +111,11 @@ export default function TVDetailScreen() {
               onPress={handlePlay}
               className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80">
               <Ionicons name="play" size={18} color="#FFFFFF" />
-              <Text className="text-base font-bold text-white">Play</Text>
+              <Text className="text-base font-bold text-white">
+                {continueItem
+                  ? `Resume S${continueItem.season ?? 1}:E${continueItem.episode ?? 1}`
+                  : 'Play'}
+              </Text>
             </Pressable>
 
             <Pressable

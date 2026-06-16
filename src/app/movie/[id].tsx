@@ -14,6 +14,7 @@ import { RatingBadge } from '@/components/rating-badge';
 import { Colors, HeroGradient } from '@/constants/theme';
 import { useMovieDetail } from '@/hooks/use-movies';
 import { formatReleaseDate, formatRuntime } from '@/lib/format';
+import { useContinueProgress } from '@/stores/continue-watching-store';
 import { useIsInWatchlist, useWatchlistStore } from '@/stores/watchlist-store';
 
 export default function MovieDetailScreen() {
@@ -25,6 +26,7 @@ export default function MovieDetailScreen() {
   const { data: movie, isLoading, isError, error, refetch } = useMovieDetail(movieId);
   const inWatchlist = useIsInWatchlist(movieId);
   const toggleWatchlist = useWatchlistStore((state) => state.toggle);
+  const continueItem = useContinueProgress(movieId);
 
   const BackButton = (
     <Pressable
@@ -89,7 +91,9 @@ export default function MovieDetailScreen() {
               onPress={() => router.push(`/player/${movie.id}`)}
               className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary py-3.5 active:opacity-80">
               <Ionicons name="play" size={18} color="#FFFFFF" />
-              <Text className="text-base font-bold text-white">Play</Text>
+              <Text className="text-base font-bold text-white">
+                {continueItem ? 'Resume' : 'Play'}
+              </Text>
             </Pressable>
 
             <Pressable

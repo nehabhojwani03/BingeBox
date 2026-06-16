@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -136,15 +136,26 @@ export default function PlayerScreen() {
   const handleShouldStartLoad: WebViewProps['onShouldStartLoadWithRequest'] = (request) =>
     isAllowedNavigation(request);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 12000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleMessage = (event: WebViewMessageEvent) => {
     try {
       const payload = JSON.parse(event.nativeEvent.data);
-      if (payload?.type !== 'PLAYER_EVENT' || !mediaRef.current) return;
+      if (payload?.type !== 'PLAYER_EVENT') return;
 
       const data = payload.data ?? {};
       const currentTime = Number(data.currentTime) || 0;
       const duration = Number(data.duration) || 0;
       const progress = duration > 0 ? currentTime / duration : (Number(data.progress) || 0) / 100;
+
+      if (data.event === 'play' || (data.event === 'timeupdate' && currentTime > 0)) {
+        setLoading(false);
+      }
+
+      if (!mediaRef.current) return;
 
       if (data.event === 'timeupdate') {
         const now = Date.now();
@@ -182,7 +193,6 @@ export default function PlayerScreen() {
           setSupportMultipleWindows={false}
           javaScriptCanOpenWindowsAutomatically={false}
           onOpenWindow={() => undefined}
-          onLoadEnd={() => setLoading(false)}
           onError={() => {
             setLoading(false);
             setFailed(true);
@@ -191,7 +201,7 @@ export default function PlayerScreen() {
       )}
 
       {loading && !failed && (
-        <View className="absolute inset-0 items-center justify-center">
+        <View className="absolute inset-0 items-center justify-center bg-black">
           <ActivityIndicator color={Colors.primary} size="large" />
         </View>
       )}

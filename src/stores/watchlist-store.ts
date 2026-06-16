@@ -4,7 +4,6 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Movie } from '@/api/types';
 
-/** Minimal movie shape stored in the watchlist (enough to render a card). */
 export interface WatchlistItem {
   id: number;
   title: string;
@@ -54,7 +53,6 @@ export const useWatchlistStore = create<WatchlistState>()(
   ),
 );
 
-/** Reactive selector for whether a movie id is in the watchlist. */
 export function useIsInWatchlist(id: number) {
   return useWatchlistStore((state) => state.items.some((item) => item.id === id));
 }

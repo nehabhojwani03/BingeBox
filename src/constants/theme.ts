@@ -1,8 +1,3 @@
-/**
- * Raw theme values for contexts that cannot consume Tailwind classes:
- * navigation themes, status bar, gradients, vector-icon colors, etc.
- * Keep these in sync with the design tokens in tailwind.config.js.
- */
 export const Colors = {
   background: '#0F0F0F',
   surface: '#121212',
@@ -15,7 +10,6 @@ export const Colors = {
   border: '#262626',
 } as const;
 
-/** Cinematic top→bottom fade used over hero/backdrop imagery. */
 export const HeroGradient = [
   'transparent',
   'rgba(15,15,15,0.35)',
@@ -23,5 +17,4 @@ export const HeroGradient = [
   '#0F0F0F',
 ] as const;
 
-/** Subtle bottom fade for poster cards so overlaid text stays legible. */
 export const CardGradient = ['transparent', 'rgba(0,0,0,0.85)'] as const;

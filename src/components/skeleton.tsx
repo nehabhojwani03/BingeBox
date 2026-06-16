@@ -14,7 +14,6 @@ interface SkeletonProps {
   className?: string;
 }
 
-/** Subtle pulsing placeholder used while content loads. */
 export function Skeleton({ width, height, radius = 12 }: SkeletonProps) {
   const opacity = useSharedValue(0.4);
 
@@ -31,7 +30,6 @@ export function Skeleton({ width, height, radius = 12 }: SkeletonProps) {
   );
 }
 
-/** Row of poster-shaped skeletons matching a carousel layout. */
 export function CarouselSkeleton({ cardWidth }: { cardWidth: number }) {
   return (
     <View className="flex-row gap-3 px-4">

@@ -1,5 +1,3 @@
-/** TMDB response types, narrowed to the fields BingeBox actually uses. */
-
 export interface Movie {
   id: number;
   title: string;

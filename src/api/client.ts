@@ -1,10 +1,3 @@
-/**
- * Thin TMDB HTTP client. Pure request helpers only — no React, no caching,
- * no query logic (that lives in queries/ and hooks/).
- */
-
-// Base URLs are overridable so the app can route through a proxy (e.g. a
-// Cloudflare Worker) in regions where TMDB's own domains are blocked.
 const BASE_URL = process.env.EXPO_PUBLIC_TMDB_API_BASE || 'https://api.themoviedb.org/3';
 const IMAGE_BASE_URL = process.env.EXPO_PUBLIC_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p';
 
@@ -44,22 +37,22 @@ export async function tmdbGet<T>(path: string, params: QueryParams = {}): Promis
   return response.json() as Promise<T>;
 }
 
-/** Build a poster image URL (vertical card art). */
 export function posterUrl(path: string | null, size: 'w342' | 'w500' = 'w500') {
   return path ? `${IMAGE_BASE_URL}/${size}${path}` : null;
 }
 
-/** Build a backdrop image URL (wide cinematic art). */
 export function backdropUrl(path: string | null, size: 'w780' | 'w1280' | 'original' = 'w1280') {
   return path ? `${IMAGE_BASE_URL}/${size}${path}` : null;
 }
 
-/** Build a cast/crew profile image URL. */
 export function profileUrl(path: string | null) {
   return path ? `${IMAGE_BASE_URL}/w185${path}` : null;
 }
 
-/** Vidking embeddable player URL for a given TMDB movie id. */
-export function vidkingEmbedUrl(movieId: number) {
-  return `https://www.vidking.net/embed/movie/${movieId}`;
+export function vidkingEmbedUrl(movieId: number, resumeSeconds = 0) {
+  const params = new URLSearchParams({ autoPlay: 'true', color: 'e50914' });
+  if (resumeSeconds > 0) {
+    params.set('progress', String(Math.floor(resumeSeconds)));
+  }
+  return `https://www.vidking.net/embed/movie/${movieId}?${params.toString()}`;
 }

@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { isTmdbConfigured } from '@/api/client';
+import { ContinueWatchingRow } from '@/components/continue-watching-row';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState } from '@/components/error-state';
 import { HeroBanner } from '@/components/hero-banner';
@@ -50,6 +51,7 @@ export default function HomeScreen() {
         <HeroBanner movie={featured} isLoading={trending.isLoading} />
 
         <View className="pt-6">
+          <ContinueWatchingRow />
           <MovieCarousel
             title="Trending Now"
             movies={trending.data?.results?.slice(1)}

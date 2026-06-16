@@ -1,7 +1,3 @@
-/**
- * Pure TMDB movie API functions. Each takes input and returns data — no state,
- * no query/caching logic. Consumed by the query key store in queries/.
- */
 import { tmdbGet } from '@/api/client';
 import type { MovieDetails, Movie, Paginated } from '@/api/types';
 

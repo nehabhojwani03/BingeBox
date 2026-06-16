@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { isTmdbConfigured } from '@/api/client';
@@ -24,6 +25,7 @@ import type { UnifiedGenre } from '@/lib/genres';
 import { movieToHero, tvToCard, tvToHero } from '@/lib/media';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [section, setSection] = useState<HomeSection>('home');
   const [selectedGenre, setSelectedGenre] = useState<UnifiedGenre | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -172,6 +174,13 @@ export default function HomeScreen() {
           <Text className="text-xl font-extrabold tracking-tight text-white">
             Binge<Text className="text-primary">Box</Text>
           </Text>
+          <View className="flex-1" />
+          <Pressable
+            onPress={() => router.push('/account')}
+            hitSlop={8}
+            className="h-9 w-9 items-center justify-center rounded-full bg-elevated active:opacity-70">
+            <Ionicons name="person" size={18} color={Colors.text} />
+          </Pressable>
         </View>
         <HomeFilterBar
           section={section}

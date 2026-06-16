@@ -5,23 +5,23 @@ import { useRouter } from 'expo-router';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 
 import { backdropUrl } from '@/api/client';
-import type { Movie } from '@/api/types';
+import type { HeroMedia } from '@/api/types';
 import { RatingBadge } from '@/components/rating-badge';
 import { Skeleton } from '@/components/skeleton';
 import { Colors, HeroGradient } from '@/constants/theme';
 import { formatYear } from '@/lib/format';
 
 interface HeroBannerProps {
-  movie: Movie | undefined;
+  media: HeroMedia | undefined;
   isLoading: boolean;
 }
 
-export function HeroBanner({ movie, isLoading }: HeroBannerProps) {
+export function HeroBanner({ media, isLoading }: HeroBannerProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const height = Math.round(width * 1.25);
 
-  if (isLoading || !movie) {
+  if (isLoading || !media) {
     return (
       <View style={{ width, height }} className="bg-elevated">
         <Skeleton width="100%" height="100%" radius={0} />
@@ -29,7 +29,8 @@ export function HeroBanner({ movie, isLoading }: HeroBannerProps) {
     );
   }
 
-  const uri = backdropUrl(movie.backdrop_path) ?? backdropUrl(movie.poster_path, 'w780');
+  const uri = backdropUrl(media.backdrop_path) ?? backdropUrl(media.poster_path, 'w780');
+  const isTv = media.media_type === 'tv';
 
   return (
     <View style={{ width, height }}>
@@ -41,24 +42,28 @@ export function HeroBanner({ movie, isLoading }: HeroBannerProps) {
 
       <View className="absolute inset-x-0 bottom-0 items-center gap-3 px-6 pb-6">
         <Text className="text-center text-3xl font-extrabold text-white" numberOfLines={2}>
-          {movie.title}
+          {media.title}
         </Text>
 
         <View className="flex-row items-center gap-3">
-          <RatingBadge voteAverage={movie.vote_average} />
-          <Text className="text-sm font-medium text-muted">{formatYear(movie.release_date)}</Text>
+          <RatingBadge voteAverage={media.vote_average} />
+          <Text className="text-sm font-medium text-muted">{formatYear(media.release_date)}</Text>
         </View>
 
         <View className="mt-1 flex-row gap-3">
           <Pressable
-            onPress={() => router.push(`/player/${movie.id}`)}
+            onPress={() =>
+              router.push(
+                isTv ? `/player/${media.id}?type=tv&season=1&episode=1` : `/player/${media.id}`,
+              )
+            }
             className="flex-row items-center gap-2 rounded-xl bg-primary px-6 py-3 active:opacity-80">
             <Ionicons name="play" size={18} color="#FFFFFF" />
             <Text className="text-base font-bold text-white">Play</Text>
           </Pressable>
 
           <Pressable
-            onPress={() => router.push(`/movie/${movie.id}`)}
+            onPress={() => router.push(isTv ? `/tv/${media.id}` : `/movie/${media.id}`)}
             className="flex-row items-center gap-2 rounded-xl bg-white/15 px-6 py-3 active:opacity-70">
             <Ionicons name="information-circle-outline" size={18} color={Colors.text} />
             <Text className="text-base font-bold text-white">Info</Text>

@@ -1,4 +1,28 @@
-import type { MediaCardItem, Movie, MultiSearchItem, TVShow } from '@/api/types';
+import type { HeroMedia, MediaCardItem, Movie, MultiSearchItem, TVShow } from '@/api/types';
+
+export function movieToHero(movie: Movie): HeroMedia {
+  return {
+    id: movie.id,
+    title: movie.title,
+    backdrop_path: movie.backdrop_path,
+    poster_path: movie.poster_path,
+    vote_average: movie.vote_average,
+    release_date: movie.release_date,
+    media_type: 'movie',
+  };
+}
+
+export function tvToHero(show: TVShow): HeroMedia {
+  return {
+    id: show.id,
+    title: show.name,
+    backdrop_path: show.backdrop_path,
+    poster_path: show.poster_path,
+    vote_average: show.vote_average,
+    release_date: show.first_air_date,
+    media_type: 'tv',
+  };
+}
 
 export function movieToCard(movie: Movie): MediaCardItem {
   return {

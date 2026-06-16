@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -21,11 +22,16 @@ import {
   useUpcomingMovies,
 } from '@/hooks/use-movies';
 import { useOnTheAirTv, usePopularTv, useTopRatedTv, useTrendingTv } from '@/hooks/use-tv';
+import { avatarUrl } from '@/lib/avatar';
 import type { UnifiedGenre } from '@/lib/genres';
 import { movieToHero, tvToCard, tvToHero } from '@/lib/media';
+import { useAuthStore } from '@/stores/auth-store';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const avatarSeed =
+    (user?.user_metadata?.display_name as string) || user?.email || 'BingeBox';
   const [section, setSection] = useState<HomeSection>('home');
   const [selectedGenre, setSelectedGenre] = useState<UnifiedGenre | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -178,8 +184,12 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push('/account')}
             hitSlop={8}
-            className="h-9 w-9 items-center justify-center rounded-full bg-elevated active:opacity-70">
-            <Ionicons name="person" size={18} color={Colors.text} />
+            className="h-11 w-11 overflow-hidden rounded-xl bg-elevated active:opacity-70">
+            <Image
+              source={{ uri: avatarUrl(avatarSeed) }}
+              style={{ width: 44, height: 44 }}
+              contentFit="cover"
+            />
           </Pressable>
         </View>
         <HomeFilterBar

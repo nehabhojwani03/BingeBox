@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
+import { avatarUrl } from '@/lib/avatar';
 import { useAuthStore } from '@/stores/auth-store';
 
 export default function AccountScreen() {
@@ -13,7 +15,6 @@ export default function AccountScreen() {
 
   const displayName = (user?.user_metadata?.display_name as string) || 'BingeBox User';
   const email = user?.email ?? '';
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -25,8 +26,12 @@ export default function AccountScreen() {
       </View>
 
       <View className="items-center gap-3 px-5 py-8">
-        <View className="h-24 w-24 items-center justify-center rounded-full bg-primary">
-          <Text className="text-4xl font-extrabold text-white">{initial}</Text>
+        <View className="h-24 w-24 overflow-hidden rounded-3xl bg-elevated">
+          <Image
+            source={{ uri: avatarUrl(displayName) }}
+            style={{ width: 96, height: 96 }}
+            contentFit="cover"
+          />
         </View>
         <Text className="text-xl font-bold text-white">{displayName}</Text>
         {email ? <Text className="text-sm text-muted">{email}</Text> : null}

@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { backdropUrl } from '@/api/client';
+import { AddToCollectionSheet } from '@/components/add-to-collection-sheet';
 import { CastList } from '@/components/cast-list';
 import { EpisodeList } from '@/components/episode-list';
 import { ErrorState } from '@/components/error-state';
@@ -18,6 +19,7 @@ import { Colors, HeroGradient } from '@/constants/theme';
 import { useTvDetail, useTvSeason } from '@/hooks/use-tv';
 import { formatYear } from '@/lib/format';
 import { tvToCard } from '@/lib/media';
+import { useIsInAnyCollection } from '@/stores/collections-store';
 import { getContinueItem, useContinueProgress } from '@/stores/continue-watching-store';
 import { useIsInWatchlist, useWatchlistStore } from '@/stores/watchlist-store';
 
@@ -31,6 +33,8 @@ export default function TVDetailScreen() {
   const inWatchlist = useIsInWatchlist(showId);
   const toggleWatchlist = useWatchlistStore((state) => state.toggle);
   const continueItem = useContinueProgress(showId);
+  const inCollection = useIsInAnyCollection(showId);
+  const [collectionSheetOpen, setCollectionSheetOpen] = useState(false);
 
   const seasons = useMemo(
     () => (show?.seasons ?? []).filter((season) => season.episode_count > 0),
@@ -130,15 +134,22 @@ export default function TVDetailScreen() {
                   release_date: show.first_air_date,
                 })
               }
-              className="flex-row items-center justify-center gap-2 rounded-xl bg-elevated px-5 py-3.5 active:opacity-70">
+              className="items-center justify-center rounded-xl bg-elevated px-4 py-3.5 active:opacity-70">
               <Ionicons
                 name={inWatchlist ? 'bookmark' : 'bookmark-outline'}
-                size={18}
+                size={20}
                 color={inWatchlist ? Colors.accent : Colors.text}
               />
-              <Text className="text-base font-bold text-white">
-                {inWatchlist ? 'Saved' : 'Watchlist'}
-              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setCollectionSheetOpen(true)}
+              className="items-center justify-center rounded-xl bg-elevated px-4 py-3.5 active:opacity-70">
+              <Ionicons
+                name={inCollection ? 'checkmark' : 'add'}
+                size={22}
+                color={inCollection ? Colors.accent : Colors.text}
+              />
             </Pressable>
           </View>
 
@@ -175,6 +186,19 @@ export default function TVDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      <AddToCollectionSheet
+        visible={collectionSheetOpen}
+        item={{
+          id: show.id,
+          media_type: 'tv',
+          title: show.name,
+          poster_path: show.poster_path,
+          vote_average: show.vote_average,
+          release_date: show.first_air_date,
+        }}
+        onClose={() => setCollectionSheetOpen(false)}
+      />
     </View>
   );
 }

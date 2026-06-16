@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { MediaType } from '@/api/types';
+import { watchlistRemote } from '@/api/watchlist-remote';
 
 export interface WatchlistItem {
   id: number;
@@ -18,6 +19,7 @@ interface WatchlistState {
   items: WatchlistItem[];
   toggle: (item: WatchlistItem) => void;
   remove: (id: number) => void;
+  hydrate: () => Promise<void>;
   clear: () => void;
 }
 
@@ -27,13 +29,22 @@ export const useWatchlistStore = create<WatchlistState>()(
       items: [],
       toggle: (item) => {
         const exists = get().items.some((existing) => existing.id === item.id);
-        set({
-          items: exists
-            ? get().items.filter((existing) => existing.id !== item.id)
-            : [item, ...get().items],
-        });
+        if (exists) {
+          set({ items: get().items.filter((existing) => existing.id !== item.id) });
+          watchlistRemote.remove(item.id);
+        } else {
+          set({ items: [item, ...get().items] });
+          watchlistRemote.upsert(item);
+        }
       },
-      remove: (id) => set({ items: get().items.filter((item) => item.id !== id) }),
+      remove: (id) => {
+        set({ items: get().items.filter((item) => item.id !== id) });
+        watchlistRemote.remove(id);
+      },
+      hydrate: async () => {
+        const remote = await watchlistRemote.fetchAll();
+        if (remote) set({ items: remote });
+      },
       clear: () => set({ items: [] }),
     }),
     {

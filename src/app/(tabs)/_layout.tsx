@@ -35,8 +35,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="watchlist"
         options={{
-          title: 'Watchlist',
-          tabBarIcon: ({ color, size }) => <Ionicons name="bookmark" size={size} color={color} />,
+          title: 'Library',
+          tabBarIcon: ({ color, size }) => <Ionicons name="albums" size={size} color={color} />,
         }}
       />
     </Tabs>

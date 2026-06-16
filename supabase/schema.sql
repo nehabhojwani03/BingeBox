@@ -1,5 +1,6 @@
 -- BingeBox Supabase schema.
 -- Run this in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
+-- Safe to re-run (idempotent): tables use IF NOT EXISTS, policies are dropped first.
 
 -- ---------------------------------------------------------------------------
 -- Profiles (one row per auth user)
@@ -13,10 +14,15 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Profiles are viewable by owner" on public.profiles;
 create policy "Profiles are viewable by owner"
   on public.profiles for select using (auth.uid() = id);
+
+drop policy if exists "Profiles are updatable by owner" on public.profiles;
 create policy "Profiles are updatable by owner"
   on public.profiles for update using (auth.uid() = id);
+
+drop policy if exists "Profiles are insertable by owner" on public.profiles;
 create policy "Profiles are insertable by owner"
   on public.profiles for insert with check (auth.uid() = id);
 
@@ -56,6 +62,7 @@ create table if not exists public.watchlist (
 );
 
 alter table public.watchlist enable row level security;
+drop policy if exists "Watchlist is owned" on public.watchlist;
 create policy "Watchlist is owned" on public.watchlist
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -81,6 +88,7 @@ create table if not exists public.continue_watching (
 );
 
 alter table public.continue_watching enable row level security;
+drop policy if exists "Continue watching is owned" on public.continue_watching;
 create policy "Continue watching is owned" on public.continue_watching
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -95,6 +103,7 @@ create table if not exists public.collections (
 );
 
 alter table public.collections enable row level security;
+drop policy if exists "Collections are owned" on public.collections;
 create policy "Collections are owned" on public.collections
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -112,5 +121,6 @@ create table if not exists public.collection_items (
 );
 
 alter table public.collection_items enable row level security;
+drop policy if exists "Collection items are owned" on public.collection_items;
 create policy "Collection items are owned" on public.collection_items
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

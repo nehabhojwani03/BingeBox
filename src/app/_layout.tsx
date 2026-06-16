@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '@/global.css';
 
 import { Colors } from '@/constants/theme';
+import { useDataSync } from '@/hooks/use-data-sync';
 import { queryClient } from '@/lib/query-client';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
@@ -55,6 +56,7 @@ function useAuthGate() {
 
 export default function RootLayout() {
   useAuthGate();
+  useDataSync();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -70,6 +72,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="movie/[id]" />
               <Stack.Screen name="tv/[id]" />
+              <Stack.Screen name="collection/[id]" />
               <Stack.Screen name="account" />
               <Stack.Screen name="auth" options={{ animation: 'fade' }} />
               <Stack.Screen

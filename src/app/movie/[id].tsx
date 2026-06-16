@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { backdropUrl } from '@/api/client';
+import { AddToCollectionSheet } from '@/components/add-to-collection-sheet';
 import { CastList } from '@/components/cast-list';
 import { ErrorState } from '@/components/error-state';
 import { GenrePills } from '@/components/genre-pills';
@@ -14,6 +16,7 @@ import { RatingBadge } from '@/components/rating-badge';
 import { Colors, HeroGradient } from '@/constants/theme';
 import { useMovieDetail } from '@/hooks/use-movies';
 import { formatReleaseDate, formatRuntime } from '@/lib/format';
+import { useIsInAnyCollection } from '@/stores/collections-store';
 import { useContinueProgress } from '@/stores/continue-watching-store';
 import { useIsInWatchlist, useWatchlistStore } from '@/stores/watchlist-store';
 
@@ -27,6 +30,8 @@ export default function MovieDetailScreen() {
   const inWatchlist = useIsInWatchlist(movieId);
   const toggleWatchlist = useWatchlistStore((state) => state.toggle);
   const continueItem = useContinueProgress(movieId);
+  const inCollection = useIsInAnyCollection(movieId);
+  const [collectionSheetOpen, setCollectionSheetOpen] = useState(false);
 
   const BackButton = (
     <Pressable
@@ -108,15 +113,22 @@ export default function MovieDetailScreen() {
                   release_date: movie.release_date,
                 })
               }
-              className="flex-row items-center justify-center gap-2 rounded-xl bg-elevated px-5 py-3.5 active:opacity-70">
+              className="items-center justify-center rounded-xl bg-elevated px-4 py-3.5 active:opacity-70">
               <Ionicons
                 name={inWatchlist ? 'bookmark' : 'bookmark-outline'}
-                size={18}
+                size={20}
                 color={inWatchlist ? Colors.accent : Colors.text}
               />
-              <Text className="text-base font-bold text-white">
-                {inWatchlist ? 'Saved' : 'Watchlist'}
-              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setCollectionSheetOpen(true)}
+              className="items-center justify-center rounded-xl bg-elevated px-4 py-3.5 active:opacity-70">
+              <Ionicons
+                name={inCollection ? 'checkmark' : 'add'}
+                size={22}
+                color={inCollection ? Colors.accent : Colors.text}
+              />
             </Pressable>
           </View>
 
@@ -133,6 +145,19 @@ export default function MovieDetailScreen() {
           <MovieCarousel title="More Like This" movies={movie.similar.results} isLoading={false} />
         </View>
       </ScrollView>
+
+      <AddToCollectionSheet
+        visible={collectionSheetOpen}
+        item={{
+          id: movie.id,
+          media_type: 'movie',
+          title: movie.title,
+          poster_path: movie.poster_path,
+          vote_average: movie.vote_average,
+          release_date: movie.release_date,
+        }}
+        onClose={() => setCollectionSheetOpen(false)}
+      />
     </View>
   );
 }

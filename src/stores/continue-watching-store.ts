@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { continueRemote } from '@/api/continue-remote';
 import type { MediaType } from '@/api/types';
 
 export interface ContinueWatchingItem {
@@ -46,6 +47,7 @@ interface ContinueWatchingState {
   items: ContinueWatchingItem[];
   upsert: (media: ContinueWatchingInput, playback: PlaybackProgress) => void;
   remove: (id: number) => void;
+  hydrate: () => Promise<void>;
   clear: () => void;
 }
 
@@ -58,6 +60,7 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
 
         if (playback.currentTime < MIN_PROGRESS_SECONDS || playback.progress >= FINISHED_THRESHOLD) {
           set({ items: others });
+          continueRemote.remove(media.id);
           return;
         }
 
@@ -70,8 +73,16 @@ export const useContinueWatchingStore = create<ContinueWatchingState>()(
         };
 
         set({ items: [entry, ...others] });
+        continueRemote.upsert(entry);
       },
-      remove: (id) => set({ items: get().items.filter((item) => item.id !== id) }),
+      remove: (id) => {
+        set({ items: get().items.filter((item) => item.id !== id) });
+        continueRemote.remove(id);
+      },
+      hydrate: async () => {
+        const remote = await continueRemote.fetchAll();
+        if (remote) set({ items: remote });
+      },
       clear: () => set({ items: [] }),
     }),
     {

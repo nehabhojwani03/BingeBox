@@ -16,3 +16,7 @@ export const PLANS: Plan[] = [
 ];
 
 export const DEFAULT_PLAN_ID = 'quarterly';
+
+export function planLabel(planId: string | null | undefined): string {
+  return PLANS.find((plan) => plan.id === planId)?.label ?? 'Premium';
+}

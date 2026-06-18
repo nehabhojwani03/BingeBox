@@ -18,8 +18,13 @@ const corsHeaders = {
 const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')!;
 const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')!;
 
-// How long a single payment grants access.
-const ACCESS_DAYS = 30;
+// Access length per plan (days). Keys must match the app + create-subscription.
+const PLAN_DAYS: Record<string, number> = {
+  monthly: 30,
+  quarterly: 90,
+  yearly: 365,
+};
+const DEFAULT_DAYS = 30;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -50,10 +55,10 @@ Deno.serve(async (req) => {
   }
   const userId = userData.user.id;
 
-  // Find the user's most recent payment link id.
+  // Find the user's most recent payment link id + plan.
   const { data: row } = await supabase
     .from('subscriptions')
-    .select('razorpay_subscription_id')
+    .select('razorpay_subscription_id, plan_id')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -77,8 +82,9 @@ Deno.serve(async (req) => {
     return json({ status: link.status });
   }
 
-  // Paid — grant access.
-  const periodEnd = new Date(Date.now() + ACCESS_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  // Paid — grant access for the plan's duration.
+  const days = PLAN_DAYS[row?.plan_id ?? ''] ?? DEFAULT_DAYS;
+  const periodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   await supabase
     .from('subscriptions')
     .update({

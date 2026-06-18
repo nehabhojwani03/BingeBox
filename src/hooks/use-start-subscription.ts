@@ -13,8 +13,8 @@ export function useStartSubscription() {
   const userId = useAuthStore((state) => state.user?.id);
 
   return useMutation({
-    mutationFn: async () => {
-      const { shortUrl } = await subscriptionRemote.create();
+    mutationFn: async (planId: string) => {
+      const { shortUrl } = await subscriptionRemote.create(planId);
       await WebBrowser.openBrowserAsync(shortUrl);
 
       // The user has returned from checkout. Confirm payment server-side,

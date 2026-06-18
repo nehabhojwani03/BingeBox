@@ -21,8 +21,14 @@ const corsHeaders = {
 const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')!;
 const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')!;
 
-// Price in paise (₹149 = 14900). Override via the RAZORPAY_AMOUNT secret.
-const AMOUNT_PAISE = Number(Deno.env.get('RAZORPAY_AMOUNT') ?? '14900');
+// Authoritative plan catalog: price (paise) + access length (days). Keys must
+// match src/constants/plans.ts in the app. The app sends only a plan id, never
+// a price, so the charged amount can't be tampered with.
+const PLANS: Record<string, { amount: number; days: number }> = {
+  monthly: { amount: 14900, days: 30 },
+  quarterly: { amount: 39900, days: 90 },
+  yearly: { amount: 129900, days: 365 },
+};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -53,6 +59,12 @@ Deno.serve(async (req) => {
   }
   const userId = userData.user.id;
 
+  const { planId } = await req.json().catch(() => ({ planId: undefined }));
+  const plan = typeof planId === 'string' ? PLANS[planId] : undefined;
+  if (!plan) {
+    return json({ error: 'Invalid plan.' }, 400);
+  }
+
   // Create a one-time payment link on Razorpay.
   const razorpayResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
     method: 'POST',
@@ -61,10 +73,10 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      amount: AMOUNT_PAISE,
+      amount: plan.amount,
       currency: 'INR',
-      description: 'BingeBox Premium — 1 month',
-      notes: { user_id: userId },
+      description: `BingeBox Premium — ${planId}`,
+      notes: { user_id: userId, plan_id: planId },
       notify: { sms: false, email: false },
       reminder_enable: false,
     }),
@@ -79,7 +91,7 @@ Deno.serve(async (req) => {
   const { error: upsertError } = await supabase.from('subscriptions').upsert({
     user_id: userId,
     razorpay_subscription_id: link.id,
-    plan_id: null,
+    plan_id: planId,
     status: 'created',
     updated_at: new Date().toISOString(),
   });

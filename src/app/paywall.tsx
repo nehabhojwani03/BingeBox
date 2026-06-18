@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DEFAULT_PLAN_ID, PLANS, type Plan } from '@/constants/plans';
 import { Colors } from '@/constants/theme';
 import { useStartSubscription } from '@/hooks/use-start-subscription';
+import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/stores/auth-store';
 
 const PLAN_BENEFITS = [
@@ -12,9 +15,6 @@ const PLAN_BENEFITS = [
   'Watchlist & collections synced to your account',
   'Resume across all your devices',
 ];
-
-const PLAN_PRICE = '₹149';
-const PLAN_PERIOD = 'per month';
 
 function Benefit({ label }: { label: string }) {
   return (
@@ -25,13 +25,53 @@ function Benefit({ label }: { label: string }) {
   );
 }
 
+function PlanCard({
+  plan,
+  selected,
+  onSelect,
+}: {
+  plan: Plan;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onSelect}
+      className={cn(
+        'flex-row items-center justify-between rounded-2xl border-2 bg-elevated px-4 py-4 active:opacity-80',
+        selected ? 'border-primary' : 'border-[#2A2A2A]',
+      )}>
+      <View className="flex-row items-center gap-3">
+        <Ionicons
+          name={selected ? 'radio-button-on' : 'radio-button-off'}
+          size={22}
+          color={selected ? Colors.primary : Colors.textSecondary}
+        />
+        <View>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-base font-bold text-white">{plan.label}</Text>
+            {plan.badge ? (
+              <View className="rounded-full bg-primary px-2 py-0.5">
+                <Text className="text-[10px] font-bold uppercase text-white">{plan.badge}</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text className="text-sm text-muted">{plan.period}</Text>
+        </View>
+      </View>
+      <Text className="text-lg font-extrabold text-white">{plan.price}</Text>
+    </Pressable>
+  );
+}
+
 export default function PaywallScreen() {
+  const [selectedPlanId, setSelectedPlanId] = useState(DEFAULT_PLAN_ID);
   const signOut = useAuthStore((state) => state.signOut);
   const startSubscription = useStartSubscription();
   const busy = startSubscription.isPending;
 
   function handleSubscribe() {
-    startSubscription.mutate(undefined, {
+    startSubscription.mutate(selectedPlanId, {
       onError: (error) => {
         Alert.alert('Subscription failed', error.message);
       },
@@ -49,19 +89,25 @@ export default function PaywallScreen() {
         </View>
 
         <Text className="mb-1 text-2xl font-extrabold text-white">Go Premium</Text>
-        <Text className="mb-8 text-sm text-muted">
+        <Text className="mb-6 text-sm text-muted">
           Subscribe to unlock the full BingeBox experience.
         </Text>
 
-        <View className="gap-4">
+        <View className="mb-8 gap-4">
           {PLAN_BENEFITS.map((benefit) => (
             <Benefit key={benefit} label={benefit} />
           ))}
         </View>
 
-        <View className="mt-8 flex-row items-end gap-1">
-          <Text className="text-4xl font-extrabold text-white">{PLAN_PRICE}</Text>
-          <Text className="mb-1 text-base text-muted">{PLAN_PERIOD}</Text>
+        <View className="gap-3">
+          {PLANS.map((plan) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              selected={plan.id === selectedPlanId}
+              onSelect={() => setSelectedPlanId(plan.id)}
+            />
+          ))}
         </View>
 
         <Pressable

@@ -69,9 +69,10 @@ export const subscriptionRemote = {
   // Asks the create-subscription Edge Function to open a Razorpay payment link
   // and return its hosted-checkout URL. The user's auth token is attached by
   // supabase-js automatically.
-  async create(): Promise<CreatedSubscription> {
+  async create(planId: string): Promise<CreatedSubscription> {
     const { data, error } = await supabase.functions.invoke<CreatedSubscription>(
       'create-subscription',
+      { body: { planId } },
     );
     if (error) {
       throw new Error(await describeFunctionError(error));

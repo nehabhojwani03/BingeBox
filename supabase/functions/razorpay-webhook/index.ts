@@ -11,8 +11,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get('RAZORPAY_WEBHOOK_SECRET')!;
 
-// How long a single payment grants access.
-const ACCESS_DAYS = 30;
+// Access length per plan (days). Keys must match the app + create-subscription.
+const PLAN_DAYS: Record<string, number> = {
+  monthly: 30,
+  quarterly: 90,
+  yearly: 365,
+};
+const DEFAULT_DAYS = 30;
 
 // HMAC-SHA256 hex digest of the raw request body.
 async function signBody(body: string): Promise<string> {
@@ -53,7 +58,15 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  const periodEnd = new Date(Date.now() + ACCESS_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  // Look up the plan on the stored row to grant the right access length.
+  const { data: row } = await supabase
+    .from('subscriptions')
+    .select('plan_id')
+    .eq('razorpay_subscription_id', entity.id)
+    .maybeSingle();
+
+  const days = PLAN_DAYS[row?.plan_id ?? ''] ?? DEFAULT_DAYS;
+  const periodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
   await supabase
     .from('subscriptions')

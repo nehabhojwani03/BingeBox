@@ -124,3 +124,27 @@ alter table public.collection_items enable row level security;
 drop policy if exists "Collection items are owned" on public.collection_items;
 create policy "Collection items are owned" on public.collection_items
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Subscriptions (one row per user; mirrors a Razorpay recurring subscription)
+-- ---------------------------------------------------------------------------
+-- The app only reads this table. All writes happen server-side from the
+-- Razorpay Edge Functions (service-role key), which bypass RLS — so users get
+-- a read-only "owner" policy and cannot forge their own subscription status.
+create table if not exists public.subscriptions (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  razorpay_subscription_id text,
+  plan_id text,
+  status text not null default 'created'
+    check (status in (
+      'created', 'authenticated', 'active', 'pending',
+      'halted', 'cancelled', 'completed', 'expired'
+    )),
+  current_period_end timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.subscriptions enable row level security;
+drop policy if exists "Subscriptions are viewable by owner" on public.subscriptions;
+create policy "Subscriptions are viewable by owner"
+  on public.subscriptions for select using (auth.uid() = user_id);

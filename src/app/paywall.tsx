@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CheckoutWebView } from '@/components/checkout-webview';
 import { DEFAULT_PLAN_ID, PLANS, type Plan } from '@/constants/plans';
 import { Colors } from '@/constants/theme';
-import { useStartSubscription } from '@/hooks/use-start-subscription';
+import { useCreateCheckout } from '@/hooks/use-create-checkout';
+import { useVerifySubscription } from '@/hooks/use-verify-subscription';
 import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -66,16 +68,37 @@ function PlanCard({
 
 export default function PaywallScreen() {
   const [selectedPlanId, setSelectedPlanId] = useState(DEFAULT_PLAN_ID);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const signOut = useAuthStore((state) => state.signOut);
-  const startSubscription = useStartSubscription();
-  const busy = startSubscription.isPending;
+  const createCheckout = useCreateCheckout();
+  const verifySubscription = useVerifySubscription();
+
+  // Busy while creating the link, or after payment while we confirm it and the
+  // auth gate swaps to the home screen.
+  const busy = createCheckout.isPending || verifySubscription.isPending;
 
   function handleSubscribe() {
-    startSubscription.mutate(selectedPlanId, {
+    createCheckout.mutate(selectedPlanId, {
+      onSuccess: ({ shortUrl }) => setCheckoutUrl(shortUrl),
       onError: (error) => {
         Alert.alert('Subscription failed', error.message);
       },
     });
+  }
+
+  // Payment succeeded: close the WebView and verify. Once the subscription reads
+  // active, the auth gate navigates to home automatically.
+  function handlePaymentSuccess() {
+    setCheckoutUrl(null);
+    verifySubscription.mutate(undefined, {
+      onError: (error) => {
+        Alert.alert('Could not confirm payment', error.message);
+      },
+    });
+  }
+
+  function handlePaymentCancel() {
+    setCheckoutUrl(null);
   }
 
   return (
@@ -130,6 +153,14 @@ export default function PaywallScreen() {
           </Text>
         </Pressable>
       </ScrollView>
+
+      {checkoutUrl ? (
+        <CheckoutWebView
+          url={checkoutUrl}
+          onSuccess={handlePaymentSuccess}
+          onCancel={handlePaymentCancel}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

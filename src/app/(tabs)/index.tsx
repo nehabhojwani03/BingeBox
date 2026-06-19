@@ -12,6 +12,7 @@ import { GenreDropdown } from '@/components/genre-dropdown';
 import { HeroBanner } from '@/components/hero-banner';
 import { HomeFilterBar, type HomeSection } from '@/components/home-filter-bar';
 import { MovieCarousel } from '@/components/movie-carousel';
+import { NotificationBell } from '@/components/notification-bell';
 import { Colors } from '@/constants/theme';
 import { useDiscoverMoviesByGenre, useDiscoverTvByGenre } from '@/hooks/use-discover';
 import { useUnifiedGenres } from '@/hooks/use-genres';
@@ -181,6 +182,7 @@ export default function HomeScreen() {
             Binge<Text className="text-primary">Box</Text>
           </Text>
           <View className="flex-1" />
+          <NotificationBell />
           <Pressable
             onPress={() => router.push('/account')}
             hitSlop={8}

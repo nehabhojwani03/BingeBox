@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useContinueWatchingStore } from '@/stores/continue-watching-store';
+import { useNotificationsStore } from '@/stores/notifications-store';
 import { useWatchlistStore } from '@/stores/watchlist-store';
 
 export function useDataSync() {
@@ -20,6 +21,7 @@ export function useDataSync() {
       useWatchlistStore.getState().clear();
       useContinueWatchingStore.getState().clear();
       useCollectionsStore.getState().clear();
+      useNotificationsStore.getState().clear();
     }
   }, [status]);
 }

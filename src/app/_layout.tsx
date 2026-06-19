@@ -16,6 +16,8 @@ import '@/global.css';
 
 import { Colors } from '@/constants/theme';
 import { useDataSync } from '@/hooks/use-data-sync';
+import { useOnboardingWelcome } from '@/hooks/use-onboarding-welcome';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useSubscription } from '@/hooks/use-subscription';
 import { queryClient } from '@/lib/query-client';
 import { isSubscriptionActive, isSubscriptionEnforced } from '@/lib/subscription';
@@ -81,6 +83,8 @@ function useAuthGate() {
 function RootNavigator() {
   useAuthGate();
   useDataSync();
+  usePushNotifications();
+  useOnboardingWelcome();
 
   return (
     <ThemeProvider value={navigationTheme}>
@@ -95,6 +99,7 @@ function RootNavigator() {
         <Stack.Screen name="tv/[id]" />
         <Stack.Screen name="collection/[id]" />
         <Stack.Screen name="account" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="auth" options={{ animation: 'fade' }} />
         <Stack.Screen name="paywall" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen

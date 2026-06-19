@@ -78,7 +78,6 @@ export default function AccountScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        {/* Profile header */}
         <View className="items-center gap-3 py-6">
           <View className="h-24 w-24 overflow-hidden rounded-3xl bg-elevated">
             <Image
@@ -96,14 +95,12 @@ export default function AccountScreen() {
           </View>
         </View>
 
-        {/* Stats */}
         <View className="mt-2 flex-row gap-3">
           <StatTile value={watchlistCount} label="Watchlist" />
           <StatTile value={collectionsCount} label="Collections" />
           <StatTile value={continueCount} label="Watching" />
         </View>
 
-        {/* Menu */}
         <View className="mt-5 gap-3">
           <MenuRow
             icon="bookmark-outline"

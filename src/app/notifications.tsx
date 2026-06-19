@@ -16,7 +16,6 @@ export default function NotificationsScreen() {
   const markAllRead = useNotificationsStore((state) => state.markAllRead);
   const clear = useNotificationsStore((state) => state.clear);
 
-  // Opening the inbox marks everything as seen.
   useEffect(() => {
     markAllRead();
   }, [markAllRead]);

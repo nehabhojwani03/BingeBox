@@ -50,8 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     });
 
-    // Re-check the hard cap whenever the app returns to the foreground, so a
-    // session that expired while backgrounded is cleared on resume.
+    // Re-check the hard cap on foreground, clearing a session that expired while backgrounded.
     AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
         get().enforceSessionExpiry();
@@ -89,9 +88,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-// Restore a persisted session on launch, enforcing the hard cap before we let
-// the user back in. Existing sessions from before the cap existed start their
-// clock now (one-time migration).
+// Restore a persisted session on launch, enforcing the hard cap first. Sessions
+// predating the cap start their clock now (one-time migration).
 async function restoreSession(set: (partial: Partial<AuthState>) => void) {
   const { data } = await supabase.auth.getSession();
   const session = data.session;

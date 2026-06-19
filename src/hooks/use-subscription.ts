@@ -8,9 +8,8 @@ export function useSubscription() {
   return useQuery({
     ...queries.subscription.current(userId ?? ''),
     enabled: Boolean(userId),
-    // While a payment is pending (row exists as 'created' but the webhook hasn't
-    // marked it paid yet), poll so the paywall clears automatically once Razorpay
-    // confirms — without the user having to relaunch the app.
+    // While a payment is pending ('created'), poll so the paywall clears once
+    // the webhook marks it paid, without relaunching the app.
     refetchInterval: (query) => (query.state.data?.status === 'created' ? 4000 : false),
   });
 }

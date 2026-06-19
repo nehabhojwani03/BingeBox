@@ -73,8 +73,6 @@ export default function PaywallScreen() {
   const createCheckout = useCreateCheckout();
   const verifySubscription = useVerifySubscription();
 
-  // Busy while creating the link, or after payment while we confirm it and the
-  // auth gate swaps to the home screen.
   const busy = createCheckout.isPending || verifySubscription.isPending;
 
   function handleSubscribe() {
@@ -86,8 +84,6 @@ export default function PaywallScreen() {
     });
   }
 
-  // Payment succeeded: close the WebView and verify. Once the subscription reads
-  // active, the auth gate navigates to home automatically.
   function handlePaymentSuccess() {
     setCheckoutUrl(null);
     verifySubscription.mutate(undefined, {

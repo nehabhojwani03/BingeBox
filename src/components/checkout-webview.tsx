@@ -13,9 +13,6 @@ interface CheckoutWebViewProps {
   onCancel: () => void;
 }
 
-// Full-screen overlay that hosts the Razorpay hosted-checkout page. It watches
-// navigation for Razorpay's post-payment redirect and, on success, fires
-// onSuccess without loading that page — letting the paywall close the overlay.
 export function CheckoutWebView({ url, onSuccess, onCancel }: CheckoutWebViewProps) {
   const [loading, setLoading] = useState(true);
 

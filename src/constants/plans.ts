@@ -1,6 +1,5 @@
-// Display catalog for the paywall. The `id` of each plan must match a key in
-// the server PLAN map inside the Edge Functions (create/verify/webhook), which
-// holds the authoritative price + access duration. Prices here are display-only.
+// Display-only catalog. Each `id` must match a key in the Edge Functions' PLAN
+// map (create/verify/webhook), which holds the authoritative price + duration.
 export interface Plan {
   id: string;
   label: string;

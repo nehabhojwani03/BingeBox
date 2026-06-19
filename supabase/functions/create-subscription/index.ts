@@ -21,10 +21,8 @@ const corsHeaders = {
 const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')!;
 const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')!;
 
-// Razorpay redirects here (GET) once the link is paid, appending payment params
-// incl. `razorpay_payment_link_status=paid`. The app never loads this page — the
-// in-app checkout WebView intercepts the redirect to detect success and close.
-// Must match CALLBACK_HOST in src/lib/checkout.ts.
+// Razorpay redirects here once the link is paid; the app's checkout WebView
+// intercepts it to detect success. Host must match src/lib/checkout.ts.
 const PAYMENT_CALLBACK_URL = 'https://bingebox.app/payment-callback';
 
 // Authoritative plan catalog: price (paise) + access length (days). Keys must

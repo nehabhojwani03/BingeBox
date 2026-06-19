@@ -4,10 +4,8 @@ import { subscriptionRemote } from '@/api/subscription-remote';
 import { queries } from '@/queries';
 import { useAuthStore } from '@/stores/auth-store';
 
-// Run once the checkout WebView reports a successful payment. Confirms the
-// payment server-side, retrying a few times in case Razorpay takes a moment to
-// mark it paid, then invalidates the subscription query so the auth gate
-// re-evaluates and lifts the paywall.
+// Confirms payment server-side after checkout, retrying while Razorpay settles,
+// then invalidates the subscription query so the auth gate lifts the paywall.
 export function useVerifySubscription() {
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.user?.id);

@@ -2,13 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { SESSION_MAX_AGE_MS, SESSION_STARTED_AT_KEY } from '@/constants/session';
 
-// Pure check: has the session outlived its hard cap?
 export function isSessionExpired(startedAt: number, now: number = Date.now()) {
   return now - startedAt >= SESSION_MAX_AGE_MS;
 }
 
-// Stamp the moment the user signed in. Called only on a fresh sign-in/sign-up,
-// never on session restore, so the cap counts from the real login.
+// Called only on fresh sign-in/sign-up, never on restore, so the cap counts
+// from the real login.
 export async function markSessionStart(now: number = Date.now()) {
   await AsyncStorage.setItem(SESSION_STARTED_AT_KEY, String(now));
 }

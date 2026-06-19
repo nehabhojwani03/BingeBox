@@ -59,14 +59,12 @@ function useAuthGate() {
       return;
     }
 
-    // Authenticated. Bounce off the auth screen first.
     if (inAuthScreen) {
       router.replace('/');
       return;
     }
 
-    // Gate on subscription only once Razorpay is configured, and only after the
-    // subscription status has loaded (so we don't flash the paywall).
+    // Wait for the subscription status to load so we don't flash the paywall.
     if (!isSubscriptionEnforced || subscriptionLoading) return;
 
     const active = isSubscriptionActive(subscription);
@@ -78,8 +76,7 @@ function useAuthGate() {
   }, [status, segments, router, navigationState?.key, subscription, subscriptionLoading]);
 }
 
-// Runs inside QueryClientProvider so the auth gate's subscription query has a
-// client. Hooks called in RootLayout's body would sit above the provider.
+// Runs inside QueryClientProvider so the auth gate's subscription query has a client.
 function RootNavigator() {
   useAuthGate();
   useDataSync();

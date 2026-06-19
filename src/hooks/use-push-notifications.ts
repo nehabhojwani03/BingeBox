@@ -12,13 +12,10 @@ import { toAppNotification } from '@/lib/notification';
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationsStore } from '@/stores/notifications-store';
 
-// Push is Android-only for now, and OneSignal is a native module that only
-// exists in a dev/standalone build — so both checks must pass before we touch
-// the SDK.
+// Push is Android-only, and OneSignal is a native module present only in a
+// dev/standalone build — both must hold before we touch the SDK.
 const isPushEnabled = Platform.OS === 'android' && isOneSignalConfigured;
 
-// Initialize OneSignal once on launch, prompt for the notification permission,
-// and mirror every notification the app sees into the in-app inbox.
 export function usePushNotifications() {
   const status = useAuthStore((state) => state.status);
 
@@ -32,14 +29,11 @@ export function usePushNotifications() {
     OneSignal.initialize(onesignalAppId);
     OneSignal.Notifications.requestPermission(true);
 
-    // Arrived while the app is in the foreground. Let it display as usual and
-    // record it in the inbox.
     const handleForeground = (event: NotificationWillDisplayEvent) => {
       useNotificationsStore.getState().add(toAppNotification(event.getNotification()));
     };
 
-    // The user tapped a notification (app was backgrounded/closed). Record it so
-    // it's still captured even when the foreground listener never ran.
+    // Tap while backgrounded/closed — record it since the foreground listener never ran.
     const handleClick = (event: NotificationClickEvent) => {
       useNotificationsStore.getState().add(toAppNotification(event.notification));
     };
@@ -53,8 +47,7 @@ export function usePushNotifications() {
     };
   }, []);
 
-  // Tie the OneSignal external ID to the Supabase user so notifications can be
-  // targeted per account across devices.
+  // Tie the OneSignal external ID to the Supabase user for per-account targeting.
   useEffect(() => {
     if (!isPushEnabled) return;
 

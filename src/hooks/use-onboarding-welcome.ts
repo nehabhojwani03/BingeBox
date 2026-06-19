@@ -9,16 +9,14 @@ import { isSubscriptionActive, isSubscriptionEnforced } from '@/lib/subscription
 import { useAuthStore } from '@/stores/auth-store';
 import { useNotificationsStore } from '@/stores/notifications-store';
 
-// Trigger/tag key OneSignal listens on for the (optional) dashboard In-App
-// Message + welcome Journey push.
+// Trigger/tag key OneSignal listens on for the optional dashboard welcome push.
 const WELCOME_TRIGGER = 'onboarded';
 const WELCOME_FLAG_PREFIX = 'bingebox.welcomed.';
 
 const isPushEnabled = Platform.OS === 'android' && isOneSignalConfigured;
 
-// Fire the onboarding welcome exactly once per user — the first time they reach
-// Home as a full user (signup, and payment when the paywall is enforced). The
-// welcome lands in the in-app inbox immediately, with no OneSignal dependency.
+// Fires the welcome exactly once per user, the first time they reach Home as a
+// full user (after signup, or after payment when the paywall is enforced).
 export function useOnboardingWelcome() {
   const status = useAuthStore((state) => state.status);
   const { data: subscription } = useSubscription();
@@ -26,8 +24,6 @@ export function useOnboardingWelcome() {
 
   useEffect(() => {
     if (status !== 'authenticated') return;
-    // Require an active subscription only where the paywall is enforced, so the
-    // welcome fires right after signup in dev and after payment in production.
     if (isSubscriptionEnforced && !isSubscriptionActive(subscription)) return;
     if (firing.current) return;
 
@@ -46,7 +42,6 @@ async function fireWelcomeOnce(userId: string) {
 
   await AsyncStorage.setItem(flagKey, '1');
 
-  // Immediate, self-contained welcome — shows in the bell/inbox right away.
   useNotificationsStore.getState().add({
     id: `welcome-${userId}`,
     title: 'Welcome to BingeBox 🎬',
@@ -54,8 +49,7 @@ async function fireWelcomeOnce(userId: string) {
     receivedAt: Date.now(),
   });
 
-  // Also fire the OneSignal trigger/tag so a dashboard-configured In-App Message
-  // and welcome Journey (tray push) fire too, if/when they're set up.
+  // Fire the OneSignal trigger/tag for the optional dashboard welcome push.
   if (isPushEnabled) {
     OneSignal.InAppMessages.addTrigger(WELCOME_TRIGGER, '1');
     OneSignal.User.addTag(WELCOME_TRIGGER, '1');

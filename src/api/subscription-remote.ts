@@ -66,9 +66,8 @@ export const subscriptionRemote = {
     return rowToSubscription(data);
   },
 
-  // Asks the create-subscription Edge Function to open a Razorpay payment link
-  // and return its hosted-checkout URL. The user's auth token is attached by
-  // supabase-js automatically.
+  // Creates a Razorpay payment link via the Edge Function and returns its
+  // hosted-checkout URL. supabase-js attaches the user's auth token.
   async create(planId: string): Promise<CreatedSubscription> {
     const { data, error } = await supabase.functions.invoke<CreatedSubscription>(
       'create-subscription',
@@ -83,8 +82,8 @@ export const subscriptionRemote = {
     return data;
   },
 
-  // Confirms payment directly with Razorpay (server-side) and activates access
-  // if paid. Returns the resolved status. Independent of the webhook.
+  // Confirms payment server-side and activates access if paid, independent of
+  // the webhook. Returns the resolved status.
   async verify(): Promise<string> {
     const { data, error } = await supabase.functions.invoke<{ status: string }>(
       'verify-subscription',
